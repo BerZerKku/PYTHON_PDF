@@ -42,7 +42,7 @@ def merge(path, output_filename):
 		В папке \a path ищутся файлы с именем содержащим \a output_filename и
 		сливаются в один *.pdf с этим именем.
 	'''
-	output = PdfFileWriter()
+	output = PdfFileWriter() 
 	output_filename = unicode(output_filename)
 
 	cnt_pdf_file = 0  # счетчик найденных файлов
@@ -52,10 +52,10 @@ def merge(path, output_filename):
 
 		if output_filename in pdffile:
 			cnt_pdf_file += 1
-			print(u"Обработан файл '%s'." % pdffile)
 			document = PdfFileReader(open(pdffile, 'rb'))
 			for i in range(document.getNumPages()):
-				output.addPage(document.getPage(i))
+					output.addPage(document.getPage(i))
+			print(u"Обработан файл '%s'." % pdffile)
 
 	if cnt_pdf_file == 0:
 		print(u"В текущем каталоге небыло найдено подходящих pdf файлов.")
@@ -86,9 +86,16 @@ if __name__ == "__main__":
 						help=u"write merged PDF to FILE", metavar="FILE")
 	parser.add_argument("-p", "--path", dest="path", default=".",
 						help=u"path of source PDF files")
+	parser.add_argument("-s", "--separate", help="create separate documents",
+                    action="store_true")
 
 	args = parser.parse_args()
+	separate = args.separate
 	tmp = unicode(args.output_filename, locale.getpreferredencoding())
-	merge(args.path, crtOutputName(tmp, FIND))
-	print(u"Нажмите ENTER для завершения программы")
+	if not separate:
+		merge(args.path, crtOutputName(tmp, FIND))
+	else:
+		outputname = crtOutputName(tmp, FIND)
+		for x in FIND:
+			merge(args.path, outputname + " " + x)
 	k = raw_input()
