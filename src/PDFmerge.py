@@ -29,44 +29,81 @@ def crtOutputName(name, find):
 					# если файл был найден, оставим в нем только то
 					# что находится до содержимого поиска
 					# так же убираются лишние пробелы в конце
-					pdffile = pdffile[:pos]
-					return pdffile.rstrip()
-
-	return name
+					name = pdffile[:pos]
+	else:
+		pos = name.find(".pdf")
+		if pos >= 0:
+			name = name[:pos]
+	
+	return name.rstrip()
 
 ##
-def merge(path, output_filename):
-	''' (unicode, str) -> None
+def crtFullDocument(path, output_filename, find):
+	''' (unicode, unicode, list of unicode) -> None
+	
+		Сборка всех файлов документации в один файл.
+	'''
+	output_filename = unicode(output_filename)
+	input_files = []
+	files = glob(u'*.pdf')
+	# создается список возможных файлов и они затем ищутся в текущем каталоге
+	for f in [u"%s %s.pdf" % (output_filename, x) for x in find]:
+		if f in files:
+			input_files.append(f)
+		
+	merge(path, u"%s.pdf" % (output_filename), input_files)
+	
+
+##
+def crtSeparateDocuments(path, output_filename, find):
+	''' (unicode, unicode, list of unicode) -> None
+	
+		Сборка раздельных файлов документации.
+	'''
+	output_filename = unicode(output_filename)
+	files = glob(u'*.pdf')
+	# создается маска для поиска файлов одинаковой документации и затем
+	# по этой маске выбираются файлы из текущего каталога
+	for doc in find:
+		input_files = []
+		input_mask = u"%s %s " % (output_filename, doc)
+		output_filename = u"%s %s.pdf" % (output_filename, doc)
+		for f in files:
+			if input_mask in f:
+				input_files.append(f)
+		
+		merge(path, output_filename, input_files)
+	# pass
+	
+##
+def merge(path, output_filename, input_files):
+	''' (unicode, unicode, list of unicode) -> None
 		
 		Слияние файлов *.pdf.
-		В папке \a path ищутся файлы с именем содержащим \a output_filename и
-		сливаются в один *.pdf с этим именем.
+		Копирование всех страниц из файлов списка \a input_files (c учетом
+		расширения) в один выходной файл с именем \a output_filename.
 	'''
 	output = PdfFileWriter() 
 	output_filename = unicode(output_filename)
-
+	
 	cnt_pdf_file = 0  # счетчик найденных файлов
-	for pdffile in glob(u'*.pdf'):
-		if pdffile == (output_filename + '.pdf'):
-			continue
-
-		if output_filename in pdffile:
-			cnt_pdf_file += 1
-			document = PdfFileReader(open(pdffile, 'rb'))
-			for i in range(document.getNumPages()):
-					output.addPage(document.getPage(i))
-			print(u"Обработан файл '%s'." % pdffile)
+	for f in input_files:
+		cnt_pdf_file += 1
+		document = PdfFileReader(open(f, 'rb'))
+		for i in range(document.getNumPages()):
+			output.addPage(document.getPage(i))
+		print(u"Обработан файл '%s'." % f)
 
 	if cnt_pdf_file == 0:
 		print(u"В текущем каталоге небыло найдено подходящих pdf файлов.")
 	else:
 		output_stream = None
 		try:
-			print(u"Сохранение в '%s.pdf'." % output_filename)
-			output_stream = file(output_filename + '.pdf', "wb")
+			print(u"Сохранение в '%s'." % output_filename)
+			output_stream = file(output_filename, "wb")
 		except IOError:
 			print(u"Ошибка записи!")
-			print(u"Попытка сохранения в '%s'." % DEFAULT_NAME)
+			print(u"Попытка сохранения в %s.pdf" % DEFAULT_NAME)
 			try:
 				output_stream = file(DEFAULT_NAME + '.pdf', "wb")
 			except:
@@ -92,10 +129,9 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 	separate = args.separate
 	tmp = unicode(args.output_filename, locale.getpreferredencoding())
-	if not separate:
-		merge(args.path, crtOutputName(tmp, FIND))
-	else:
-		outputname = crtOutputName(tmp, FIND)
-		for x in FIND:
-			merge(args.path, outputname + " " + x)
+	
+	outputname = crtOutputName(tmp, FIND)
+	crtSeparateDocuments(args.path, outputname, FIND)
+	crtFullDocument(args.path, outputname, FIND)
+		
 	k = raw_input()
