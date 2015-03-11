@@ -67,12 +67,13 @@ def crtSeparateDocuments(path, output_filename, find):
 	for doc in find:
 		input_files = []
 		input_mask = u"%s %s " % (output_filename, doc)
-		output_filename = u"%s %s.pdf" % (output_filename, doc)
+		print(input_mask)
+		output_file = u"%s %s.pdf" % (output_filename, doc)
 		for f in files:
 			if input_mask in f:
 				input_files.append(f)
 		
-		merge(path, output_filename, input_files)
+		merge(path, output_file, input_files)
 	# pass
 	
 ##
