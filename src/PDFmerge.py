@@ -6,6 +6,7 @@ from pyPdf import PdfFileReader, PdfFileWriter
 import sys, os, locale
 
 FIND = [u"(СБ)", u"(СП)", u"(Э3)"]  # признак поиска
+MANUFACTURE = [u"(СБ)", u"(СП)"]  # для Боковой не надо Э3
 DEFAULT_NAME = "merged"  # название файла по умолчанию
 
 ##
@@ -133,6 +134,6 @@ if __name__ == "__main__":
 	
 	outputname = crtOutputName(tmp, FIND)
 	crtSeparateDocuments(args.path, outputname, FIND)
-	crtFullDocument(args.path, outputname, FIND)
+	crtFullDocument(args.path, outputname, MANUFACTURE)
 		
 	k = raw_input()
