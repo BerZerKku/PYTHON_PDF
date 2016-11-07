@@ -35,7 +35,7 @@ def crtOutputName(name, find):
 		pos = name.find(".pdf")
 		if pos >= 0:
 			name = name[:pos]
-	
+
 	return name.rstrip()
 
 ##
@@ -51,9 +51,9 @@ def crtFullDocument(path, output_filename, find):
 	for f in [u"%s %s.pdf" % (output_filename, x) for x in find]:
 		if f in files:
 			input_files.append(f)
-		
+
 	merge(path, u"%s.pdf" % (output_filename), input_files)
-	
+
 
 ##
 def crtSeparateDocuments(path, output_filename, find):
@@ -73,10 +73,10 @@ def crtSeparateDocuments(path, output_filename, find):
 		for f in files:
 			if input_mask in f:
 				input_files.append(f)
-		
+
 		merge(path, output_file, input_files)
 	# pass
-	
+
 ##
 def merge(path, output_filename, input_files):
 	''' (unicode, unicode, list of unicode) -> None
@@ -85,9 +85,9 @@ def merge(path, output_filename, input_files):
 		Копирование всех страниц из файлов списка \a input_files (c учетом
 		расширения) в один выходной файл с именем \a output_filename.
 	'''
-	output = PdfFileWriter() 
+	output = PdfFileWriter()
 	output_filename = unicode(output_filename)
-	
+
 	cnt_pdf_file = 0  # счетчик найденных файлов
 	for f in input_files:
 		cnt_pdf_file += 1
@@ -125,15 +125,19 @@ if __name__ == "__main__":
 						help=u"write merged PDF to FILE", metavar="FILE")
 	parser.add_argument("-p", "--path", dest="path", default=".",
 						help=u"path of source PDF files")
-	parser.add_argument("-s", "--separate", help="create separate documents",
+	parser.add_argument("-s", "--separate", help=u"create separate documents",
+                    action="store_true")
+	parser.add_argument("-f", "--full", help=u"create full document",
                     action="store_true")
 
 	args = parser.parse_args()
 	separate = args.separate
 	tmp = unicode(args.output_filename, locale.getpreferredencoding())
-	
+
 	outputname = crtOutputName(tmp, FIND)
 	crtSeparateDocuments(args.path, outputname, FIND)
+
+#	if args.full:
 	crtFullDocument(args.path, outputname, MANUFACTURE)
-		
-	k = raw_input()
+
+	k = raw_input()  # ожидание ввода, чтобы консоль не закрывалась сама
